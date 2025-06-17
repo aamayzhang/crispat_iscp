@@ -60,7 +60,10 @@ def create_anndata_from_cellranger(batch_list, input_dir, save_dir):
     adata = ad.concat(batches, merge = "same", label = "batch", keys = batch_list, index_unique="-")
     
     # Subset to CRISPR gRNA features
-    adata_crispr = adata[:, adata.var["feature_types"] == "CRISPR Guide Capture"]
+    mask = adata.var["feature_types"].str.contains(r"crispr|grna", case=False, na=False)
+
+    # subset your AnnData accordingly
+    adata_crispr = adata[:, mask].copy()
     
     # Save as h5ad object
     adata_crispr.write(save_dir + 'gRNA_counts.h5ad')
