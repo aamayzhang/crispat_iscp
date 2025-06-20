@@ -18,9 +18,10 @@ Clone this repository and then run `pip install .` inside of the crispat directo
 This fork is customized specifically for processing ISCP data and uses the across-cells implementation of the gaussian mixture model (GMM) with tied covariance, only including cells with nonzero gRNA counts `ga_gauss`. 
 Only one GMM implementation is provided here, which uses the scikit-learn implementation with expectation maximization (EM) on nonzero gRNA count data. 
 We have found that this model tends to reliably identify the positive distribution under most circumstances. 
-The original crispat implementation provided a pyro-based Bayesian variational inference GMM, which did not perform as well as with the EM approach for ISPC samples.
+The original crispat implementation provided a pyro-based Bayesian variational inference GMM. We found that this approach not perform as well as with EM for ISPC samples, so it was removed here for simplicity.
 
-For details on other guide calling approaches provided in the original repo, please refer to [Braunger et al, 2024](https://academic.oup.com/bioinformatics/article/40/9/btae535/7750392). Note that updates have been made here to properly read in DRAGEN-processed ISCP samples, so crispat will not work for these other approaches without modification.
+For details on other guide calling approaches provided in the original repo, please refer to [Braunger et al, 2024](https://academic.oup.com/bioinformatics/article/40/9/btae535/7750392). 
+Note that updates have been made here to properly read in DRAGEN-processed ISCP samples, so crispat will not work for these other approaches without modification.
 
 ## Getting started
 An example use case of crispat is shown in the [`guide_assignment.ipynb`](tutorial/guide_assignment.ipynb) script. 
