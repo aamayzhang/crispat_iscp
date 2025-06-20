@@ -156,13 +156,13 @@ def ga_gauss(input_file, output_dir, start_gRNA=0, step=None,
         df = fit_em(gRNA, adata_crispr_batch, output_dir, nonzero)
 
         # add raw UMI counts
-        UMI_counts = adata_crispr_batch[df['cell'], [gRNA]].X.toarray().reshape(-1)
-        df['UMI_counts'] = UMI_counts
+        read_counts = adata_crispr_batch[df['cell'], [gRNA]].X.toarray().reshape(-1)
+        df['read_counts'] = read_counts
         perturbations = pd.concat([perturbations, df], ignore_index=True)
 
     # filter by UMI_threshold
     if not perturbations.empty:
-        perturbations = perturbations[perturbations['UMI_counts'] >= UMI_threshold]
+        perturbations = perturbations[perturbations['read_counts'] >= UMI_threshold]
 
     perturbations.to_csv(os.path.join(output_dir, 'assignments.csv'), index=False)
 

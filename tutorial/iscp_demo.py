@@ -1,5 +1,5 @@
 """
-Script alternatiave to .ipynb to perform guide assignment using the Crispat package.
+Runs an optimized version of the crispat gaussian-gaussian mixture model that works best for Illumina Single-Cell CRISPR Prep data.
 """
 # -----------------------------------------------------------------------------
 # Imports
