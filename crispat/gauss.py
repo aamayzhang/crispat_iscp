@@ -66,7 +66,7 @@ def plot_fitted_model(data, weights, locs, scales, threshold, gRNA, output_dir):
     plt.close()
 
 
-def fit_em(gRNA, adata_crispr, output_dir, nonzero):
+def fit_em(gRNA, adata_crispr, output_dir, nonzero=True):
     '''
     Fits Gaussian mixture model for log10 of UMI counts of one gRNA using EM
     Args:
@@ -130,8 +130,8 @@ def fit_em(gRNA, adata_crispr, output_dir, nonzero):
     return perturbations
 
 
-def ga_gauss(input_file, output_dir, start_gRNA=0, step=None, batch_list=None,
-             UMI_threshold=0, n_iter=250, nonzero=False):
+def ga_gauss(input_file, output_dir, start_gRNA=0, step=None,
+             UMI_threshold=0, nonzero=True):
     '''
     Guide assignment using a Gaussian mixture model per batch
     '''
