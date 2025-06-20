@@ -2,14 +2,17 @@
     <img src="https://github.com/velten-group/crispat/blob/main/crispat_logo.png" alt="logo" width="200"/>
 </p>
 
-## Installation
-Clone this repository and then run `pip install .` inside of the crispat directory.
-
 # crispat: CRISPR guide assignment tool
-Pooled single-cell CRISPR screens are a powerful tool for systematically gaining new insights into the functional consequences of genetic perturbations in high-throughput analyses. To allow for meaningful downstream analyses and biological insights about gene regulatory mechanisms from single-cell CRISPR screen experiments a first crucial step is guide assignment, where cells are assigned to specific guides and corresponding genetic targets. For this, thresholds on the measured gRNA counts per cell are used to distinguish between background contamination and the actual guide presence in a cell. 
+This fork of the [crispat repo]([url](https://github.com/velten-group/crispat)) was prepared to perform guide calling on Illumina Single-Cell Prep (ISCP) samples processed by DRAGEN. 
 
-This fork of the crispat repo has been prepared specifically to perform guide calling on Illumina Single-Cell Prep (ISCP) samples processed by DRAGEN. 
-It does the following
+It does the following: 
+- Read in DRAGEN filtered matrix files from an DRAGEN output directory
+- Creates and reads in a .h5ad file (via scanpy)
+- Performs 2-component Gaussian-Gaussian mixture modeling on the gRNA counts
+- Outputs gRNA assignments for each cell barcode along with plots showing the fit of the model to the raw counts
+
+# Installation
+Clone this repository and then run `pip install .` inside of the crispat directory.
 
 ## Gaussian Mixture Model Implementation Details
 This fork is customized specifically for processing ISCP data and uses the across-cells implementation of the gaussian mixture model (GMM) with tied covariance, only including cells with nonzero gRNA counts `ga_gauss`. 
