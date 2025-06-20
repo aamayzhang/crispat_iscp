@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import anndata as ad
+import glob
 from scipy.sparse import csr_matrix
 
 def create_anndata_from_csv(csv_file, save_dir):
@@ -31,7 +32,7 @@ def create_anndata_from_csv(csv_file, save_dir):
     print('Done: AnnData object is saved in ' + save_dir)
     
     
-def create_anndata_from_cellranger(batch_list, input_dir, save_dir):
+def create_anndata_from_dragen_or_cellranger(input_dir, save_dir=''):
     '''
     Creates an AnnData object from cellranger output (one folder per batch named batch1, batch2,...)
     
@@ -43,22 +44,44 @@ def create_anndata_from_cellranger(batch_list, input_dir, save_dir):
     Returns:
         None
     '''
-    batches = []
     print('Load data')
-    for batch_number in batch_list:
-        # Load data of one batch 
-        batch = sc.read_10x_mtx(input_dir + 'batch' + str(batch_number)+'/', 
-                                var_names='gene_symbols',
-                                gex_only = False, 
-                                prefix = '') 
-        batch.obs_names = [name.split('-')[0] for name in batch.obs_names]
-        batch.obs['batch'] = batch_number
-        batches.append(batch)
-        
+    # Load data of one batch
+    prefix = ''
+    save_dir = save_dir if save_dir != '' else input_dir
+
+    if not os.path.exists(input_dir):
+        raise FileNotFoundError('Could not find input dir. Ensure path is correct and try again.')
+
+    # First search for dragen filtered fastqs in input_dir
+    matrix_file_glob = os.path.join(input_dir, '*scRNA.filtered.matrix.mtx.gz')
+    features_file_glob = os.path.join(input_dir, '*scRNA.filtered.features.tsv.gz')
+    barcodes_file_glob = os.path.join(input_dir, '*scRNA.filtered.barcodes.tsv.gz')
+
+    if matrix_file_glob:
+
+        matrix_file = glob.glob(matrix_file_glob)[0]
+        features_file = glob.glob(features_file_glob)[0]
+        barcodes_file = glob.glob(barcodes_file_glob)[0]
+
+    if matrix_file:
+        matrix_filename = os.path.basename(matrix_file)
+        prefix = matrix_filename.split('matrix.mtx')[0]
+        if not (features_file or barcodes_file):
+            raise FileNotFoundError('Found matrix, but unable to find a corresponding DRAGEN feature/barcode tsv.gz')
+    else:
+        print('Unable to find a DRAGEN filtered matrix (*filtered.matrix.mtx.gz) file in the input dir. \n'
+              'Falling back to CellRanger matrix output format.')
+
+    adata = sc.read_10x_mtx(input_dir,
+                            var_names='gene_symbols',
+                            gex_only=False,
+                            prefix=prefix)
+
+    adata.obs_names = [name.split('-')[0] for name in adata.obs_names]
+
     # Concatenate batches into one AnnData object
     print('Create concatenated anndata object')
-    adata = ad.concat(batches, merge = "same", label = "batch", keys = batch_list, index_unique="-")
-    
+
     # Subset to CRISPR gRNA features
     mask = adata.var["feature_types"].str.contains(r"crispr|grna", case=False, na=False)
 
@@ -66,6 +89,6 @@ def create_anndata_from_cellranger(batch_list, input_dir, save_dir):
     adata_crispr = adata[:, mask].copy()
     
     # Save as h5ad object
-    adata_crispr.write(save_dir + 'gRNA_counts.h5ad')
+    adata_crispr.write(os.path.join(save_dir, 'gRNA_counts.h5ad'))
     print('Done: AnnData object is saved in ' + save_dir)
     

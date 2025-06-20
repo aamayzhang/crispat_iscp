@@ -103,13 +103,16 @@ def plot_loss(losses, gRNA, output_dir):
     Returns:
         None
     '''
+    loss_plot_dir = os.path.join(os.path.join(output_dir, "loss_plots"))
+    os.makedirs(loss_plot_dir, exist_ok=True)
+
     plt.figure(figsize=(8, 3), dpi=300).set_facecolor("white")
     plt.plot(losses)
     plt.xlabel("iters")
     plt.ylabel("loss")
     plt.yscale("log")
     plt.title("Convergence of SVI for " + gRNA)
-    plt.savefig(output_dir+"loss_plots/loss_"+gRNA+".png", bbox_inches="tight")
+    plt.savefig(os.path.join(loss_plot_dir, "loss_"+gRNA+".png"), bbox_inches="tight")
     plt.close()
     
     
@@ -144,7 +147,7 @@ def plot_fitted_model(data, weights, mu, scale, lam, threshold, gRNA, output_dir
     plt.title("Poisson-Gaussian mixture model for " + gRNA)
     plt.ylabel("Probability Density")
     plt.xlabel("Log2 " + gRNA + " UMI counts")
-    plt.savefig(output_dir + "fitted_model_plots/fitted_model_" + gRNA + ".png", bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, "fitted_model_plots", "fitted_model_" + gRNA + ".png"), bbox_inches="tight")
     plt.close()
     
     
@@ -285,8 +288,8 @@ def ga_poisson_gauss(input_file, output_dir, start_gRNA = 0, step = None, n_iter
     # If output_dir doesn't exist, the output folders are created
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-        os.makedirs(output_dir + "fitted_model_plots/")
-        os.makedirs(output_dir + "loss_plots/")
+        os.makedirs(output_dir + "fitted_model_plots")
+        os.makedirs(output_dir + "loss_plots")
         print("The output directory " + output_dir +  " was created") 
 
     # Load gRNA counts data
