@@ -27,12 +27,10 @@ setuptools.setup(
         "matplotlib>=3.7.1",
         "numpy>=1.24.3",
         "pandas>=1.5.3",
-        "pyro-ppl>=1.8.6",
         "scanpy>=1.9.3",
         "scipy>=1.9.3",
         "seaborn>=0.12.2",
         "setuptools>=70.0.0",
-        "torch>=2.2.0",
         "tqdm>=4.66.3"
     ],
 )

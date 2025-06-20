@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import anndata as ad
-import torch
 from scipy import sparse, stats
 from scipy.sparse import csr_matrix
 from sklearn import mixture
@@ -13,66 +12,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
 import time
-
-import pyro
-import pyro.distributions as dist
-from pyro import poutine
-from pyro.infer.autoguide import AutoDelta
-from pyro.optim import Adam
-from pyro.infer import SVI, TraceEnum_ELBO, config_enumerate
-
-
-@config_enumerate
-def model(data):
-    '''
-    Gaussian-Gaussian Mixture Model 
-    '''
-    # Global variables
-    weights = pyro.sample("weights", dist.Dirichlet(torch.tensor([0.99, 0.01])))
-    with pyro.plate("components", 2):
-        locs = pyro.sample("locs", dist.Normal(1.0, 2.0))
-
-    scale = pyro.sample("scales", dist.LogNormal(-3.0, 2.0))
-
-    with pyro.plate("data", len(data)):
-        # Local variables
-        assignment = pyro.sample("assignment", dist.Categorical(weights))
-        pyro.sample("obs", dist.Normal(locs[assignment], scale), obs=data)
-
-
-def init_loc_fn(site):
-    '''
-    Define initial parameter values
-    '''
-    if site["name"] == "weights":
-        return torch.tensor([0.99, 0.01])
-    if site["name"] == "locs":
-        return torch.tensor([0.0, 1.0])
-    if site["name"] == "scales":
-        return torch.tensor([0.01])
-    raise ValueError(site["name"])
-
-
-def initialize(seed, optim, elbo, data):
-    '''
-    Initialization for SVI
-    Args:
-        seed: (str) seed that is used in pyro
-        optim: pyro optimizer
-        elbo: pyro loss function
-        data: (tensor) observed transformed gRNA counts
-    Returns:
-        Initial loss
-    '''
-    global global_guide, svi
-    pyro.set_rng_seed(seed)
-    pyro.clear_param_store()
-    global_guide = AutoDelta(
-        poutine.block(model, expose=["weights", "locs", "scales"]),
-        init_loc_fn=init_loc_fn,
-    )
-    svi = SVI(model, global_guide, optim, loss=elbo)
-    return svi.loss(model, global_guide, data)
 
 
 def plot_loss(losses, gRNA, output_dir, inference_tag):
@@ -125,29 +64,6 @@ def plot_fitted_model(data, weights, locs, scales, threshold, gRNA, output_dir):
     plt.xlabel("Log10 " + gRNA + " UMI counts")
     plt.savefig(os.path.join(output_dir, "fitted_model_plots", "fitted_model_" + gRNA + ".png"), bbox_inches="tight")
     plt.close()
-
-
-def prob_normal_component(X, weights, locs, scales):
-    '''
-    Calculates the probability for belonging to the Gaussian component given observations
-    Args:
-        X: (list) values for which the probability is calculated
-        weights: (np array) estimated proportions for the two components
-        locs: (np array) MAP estimates for the means
-        scales: (np array) MAP estimates for the scales
-    Returns:
-        Boolean mask of whether each X favors the higher-mean component
-    '''
-    # determine which component has the higher mean
-    if locs[0] > locs[1]:
-        h, l = 0, 1
-    else:
-        h, l = 1, 0
-
-    high = dist.Normal(torch.tensor(locs[h]), torch.tensor(scales)).log_prob(torch.tensor(X)) + np.log(weights[h])
-    low = dist.Normal(torch.tensor(locs[l]), torch.tensor(scales)).log_prob(torch.tensor(X)) + np.log(weights[l])
-
-    return (high > low).numpy()
 
 
 def fit_em(gRNA, adata_crispr, output_dir, nonzero):
@@ -255,5 +171,5 @@ def ga_gauss(input_file, output_dir, start_gRNA=0, step=None, batch_list=None,
 
 if __name__ == "__main__":
     # example usage:
-    # ga_gauss('data/crispr_counts.h5ad', 'results/', inference='em')
+    # ga_gauss('data/crispr_counts.h5ad', 'results/')
     pass
